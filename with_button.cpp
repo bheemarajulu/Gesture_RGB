@@ -77,12 +77,17 @@ void setup(void) {
 }            
                               
 void loop(void) {  
-  if( isr_flag == 1 ) {     
+  if( isr_flag == 1 ) {
+    if (Serial.available()) {  
+ if (Serial.read() == 'N') // Receive
+    {      
     detachInterrupt(0);
     handleGesture();    
     isr_flag = 0;
     attachInterrupt(0, interruptRoutine, FALLING);    
-    delay(20);
+    //delay(20);
+  }
+    }
   }
   //handleGesture();
   sensor_data();
@@ -91,17 +96,19 @@ void loop(void) {
 }
 void sensor_data()
 {
-  //send_command();
-  //Serial.println("Found S2"); 
+  if (Serial.available()) {
+  
+ if (Serial.read() == 'M') // Receive
+    {  
       altSerial.begin(57600); 
       altSerial.println("A");
       //send_command();
       uint16_t clear, red, green, blue;
       Serial.flush ();
-      //tcs.setInterrupt(false);      // turn on LED
-      delay(60);  // takes 50ms to read 
+      tcs.setInterrupt(false);      // turn on LED
+      //delay(60);  // takes 50ms to read 
       tcs.getRawData(&red, &green, &blue, &clear);
-      //tcs.setInterrupt(true);  // turn off LED
+      tcs.setInterrupt(true);  // turn off LED
   // Figure out some basic hex code for visualization
   uint32_t sum = clear;
   float r, g, b; 
@@ -241,10 +248,11 @@ void sensor_data()
       //while ((UCSR0A & _BV (TXC0)) == 0)
          // {}
      }
- 
+  }
+}
 
 void handleGesture() {
-    if ( apds.isGestureAvailable() ) {
+  if ( apds.isGestureAvailable() ) {
     switch ( apds.readGesture() ) {
       case DIR_UP:
         altSerial.println("UP");
@@ -268,14 +276,19 @@ void handleGesture() {
         altSerial.println("NONE");
     }
   }
-}        
-
+}
+ 
+              
 void interruptRoutine() {
   isr_flag = 1;
 }
 
 void buttons()
-{
+{ 
+  if (Serial.available()) {
+  
+ if (Serial.read() == 'L') // Receive
+    {  
   if (digitalRead(buttonPin_red)==0) // 
   {
    
@@ -328,4 +341,6 @@ else
  
       }
    //else delay(holdTime); 
+}
+  }
 }
